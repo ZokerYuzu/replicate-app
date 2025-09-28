@@ -4,13 +4,13 @@ import json
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
 # In-memory storage untuk produk (dalam production gunakan database)
 products = []
 
 # API Token untuk Replicate
-REPLICATE_API_TOKEN = "r8_MKvmf9XcInzr6jf4bYz7qdFnJLt9axO05A0yl"
+REPLICATE_API_TOKEN = os.environ.get('REPLICATE_API_TOKEN', "r8_MKvmf9XcInzr6jf4bYz7qdFnJLt9axO05A0yl")
 
 def get_ai_recommendation(product_name, size, quantity):
     """Mendapatkan rekomendasi dari AI Granite"""
@@ -177,8 +177,8 @@ def analyze_catalog_with_ai(catalog_summary: dict) -> str:
             f"Ringkasan: {catalog_summary}"
         )
         output = replicate.run(
-            "ibm-granite/granite-3.3-8b-instruct",
-            input={
+    "ibm-granite/granite-3.3-8b-instruct",
+    input={
                 "prompt": prompt,
                 "max_tokens": 300,
                 "temperature": 0.4
@@ -322,4 +322,6 @@ def test_page():
     return app.send_static_file('test_ai.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug)
