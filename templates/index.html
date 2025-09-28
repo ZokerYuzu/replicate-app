@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Beranda - Katalog Belanjaan{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-shopping-bag me-2"></i>Katalog Produk</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" id="analyze-btn">
+                    <i class="fas fa-chart-line me-1"></i>Analisis AI Katalog
+                </button>
+                <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Tambah Produk Baru
+                </a>
+            </div>
+        </div>
+
+        <div id="analysis-panel" class="mb-4" style="display:none;">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-magnifying-glass-chart me-2"></i>Hasil Analisis Katalog</h5>
+                    <button class="btn btn-sm btn-outline-secondary"
+                        onclick="document.getElementById('analysis-panel').style.display='none'">Tutup</button>
+                </div>
+                <div class="card-body">
+                    <div id="analysis-content">
+                        <div class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Mengambil analisis...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if products %}
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card product-card h-100" id="product-{{ product.id }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <span class="badge bg-secondary">{{ product.type }}</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="card-text mb-1">
+                                <i class="fas fa-ruler me-1"></i><strong>Ukuran:</strong> {{ product.size }}
+                            </p>
+                            <p class="card-text mb-1">
+                                <i class="fas fa-boxes me-1"></i><strong>Jumlah:</strong> {{ product.quantity }}
+                            </p>
+                            {% if product.price > 0 %}
+                            <p class="card-text mb-1">
+                                <i class="fas fa-tag me-1"></i><strong>Harga:</strong> Rp {{
+                                "{:,.0f}".format(product.price) }}
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-ai btn-sm" onclick="getAIRecommendation({{ product.id }})"
+                                id="ai-btn-{{ product.id }}">
+                                <i class="fas fa-robot me-1"></i>Rekomendasi AI
+                            </button>
+
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#updateModal{{ product.id }}">
+                                <i class="fas fa-edit me-1"></i>Edit Jumlah
+                            </button>
+
+                            <a href="{{ url_for('delete_product', product_id=product.id) }}"
+                                class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Yakin ingin menghapus produk ini?')">
+                                <i class="fas fa-trash me-1"></i>Hapus
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal untuk update jumlah -->
+                <div class="modal fade" id="updateModal{{ product.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Jumlah {{ product.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('update_quantity', product_id=product.id) }}">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="quantity{{ product.id }}" class="form-label">Jumlah Baru:</label>
+                                        <input type="number" class="form-control" id="quantity{{ product.id }}"
+                                            name="quantity" value="{{ product.quantity }}" min="1" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-primary">Update</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Belum ada produk dalam katalog</h4>
+            <p class="text-muted">Mulai dengan menambahkan produk pertama Anda!</p>
+            <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Tambah Produk Pertama
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if products %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Ringkasan Katalog</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-primary">{{ products|length }}</h4>
+                            <small class="text-muted">Total Produk</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-success">{{ products|sum(attribute='quantity') }}</h4>
+                            <small class="text-muted">Total Stok</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-info">{{ products|selectattr('type', 'equalto', 'Baju')|list|length }}</h4>
+                            <small class="text-muted">Baju</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-warning">{{ products|selectattr('type', 'equalto', 'Celana')|list|length }}
+                            </h4>
+                            <small class="text-muted">Celana</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('analyze-btn').addEventListener('click', function () {
+        const panel = document.getElementById('analysis-panel');
+        const content = document.getElementById('analysis-content');
+        panel.style.display = 'block';
+        content.innerHTML = '<div class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Mengambil analisis...</div>';
+        fetch('/analyze_catalog')
+            .then(r => r.json())
+            .then(data => {
+                const s = data.summary;
+                const ai = data.ai_insight;
+                // Format AI text - handle both HTML and markdown
+                let aiText = ai;
+                if (!ai.includes('<strong>') && !ai.includes('<br>')) {
+                    aiText = ai
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>')
+                        .replace(/\n\n/g, '<br><br>')
+                        .replace(/\n/g, '<br>');
+                }
+                content.innerHTML = `
+            <div class="row">
+              <div class="col-md-5">
+                <h6 class="mb-2">Ringkasan Lokal</h6>
+                <ul class="mb-3">
+                  <li><strong>Total Produk:</strong> ${s.total_products}</li>
+                  <li><strong>Total Stok:</strong> ${s.total_stock}</li>
+                  <li><strong>Perkiraan Nilai Stok:</strong> Rp ${s.total_value.toLocaleString('id-ID')}</li>
+                </ul>
+                <h6 class="mb-2">Stok Rendah (≤ 3)</h6>
+                ${s.low_stock.length ? '<ul>' + s.low_stock.map(p => `<li>${p.name} (${p.size}) - ${p.quantity}</li>`).join('') + '</ul>' : '<div class="text-muted">Tidak ada</div>'}
+              </div>
+              <div class="col-md-7">
+                <h6 class="mb-2">Insight AI</h6>
+                <div class="ai-recommendation">${aiText}</div>
+              </div>
+            </div>
+          `;
+            })
+            .catch(err => {
+                content.innerHTML = `<div class="text-danger">Gagal mengambil analisis: ${err}</div>`;
+            });
+    });
+</script>
+{% endblock %}

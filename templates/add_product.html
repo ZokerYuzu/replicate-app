@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Tambah Produk - Katalog Belanjaan{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-plus me-2"></i>Tambah Produk Baru</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="product_name" class="form-label">Nama Produk *</label>
+                        <input type="text" class="form-control" id="product_name" name="product_name"
+                            placeholder="Contoh: Kaos Polo, Jeans Slim, Sneakers Nike" required>
+                        <div class="form-text">Masukkan nama produk yang jelas dan deskriptif</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="product_type" class="form-label">Jenis Produk *</label>
+                        <select class="form-select" id="product_type" name="product_type" required>
+                            <option value="">Pilih jenis produk</option>
+                            <option value="Baju">Baju</option>
+                            <option value="Celana">Celana</option>
+                            <option value="Sepatu">Sepatu</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="size" class="form-label">Ukuran *</label>
+                        <select class="form-select" id="size" name="size" required>
+                            <option value="">Pilih ukuran</option>
+                            <optgroup label="Ukuran Baju">
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                            </optgroup>
+                            <optgroup label="Ukuran Celana">
+                                <option value="28">28</option>
+                                <option value="29">29</option>
+                                <option value="30">30</option>
+                                <option value="31">31</option>
+                                <option value="32">32</option>
+                                <option value="33">33</option>
+                                <option value="34">34</option>
+                                <option value="36">36</option>
+                                <option value="38">38</option>
+                                <option value="40">40</option>
+                            </optgroup>
+                            <optgroup label="Ukuran Sepatu">
+                                <option value="36">36</option>
+                                <option value="37">37</option>
+                                <option value="38">38</option>
+                                <option value="39">39</option>
+                                <option value="40">40</option>
+                                <option value="41">41</option>
+                                <option value="42">42</option>
+                                <option value="43">43</option>
+                                <option value="44">44</option>
+                                <option value="45">45</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Jumlah *</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="1"
+                            required>
+                        <div class="form-text">Masukkan jumlah stok yang tersedia</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Harga (Opsional)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" class="form-control" id="price" name="price" min="0" step="1000"
+                                placeholder="0">
+                        </div>
+                        <div class="form-text">Masukkan harga dalam rupiah (opsional)</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Kembali
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Simpan Produk
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tips untuk pengguna -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6><i class="fas fa-lightbulb me-2"></i>Tips Penggunaan</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Gunakan nama produk yang jelas dan mudah dipahami</li>
+                    <li>Pilih ukuran yang sesuai dengan jenis produk</li>
+                    <li>Jika produk dengan nama dan ukuran yang sama sudah ada, jumlah akan ditambahkan ke stok yang ada
+                    </li>
+                    <li>Setelah menambah produk, Anda bisa mendapatkan rekomendasi styling dari AI Granite</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dynamic size options based on product type
+    document.getElementById('product_type').addEventListener('change', function () {
+        const sizeSelect = document.getElementById('size');
+        const productType = this.value;
+
+        // Clear existing options
+        sizeSelect.innerHTML = '<option value="">Pilih ukuran</option>';
+
+        if (productType === 'Baju') {
+            const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+            sizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                sizeSelect.appendChild(option);
+            });
+        } else if (productType === 'Celana') {
+            const sizes = ['28', '29', '30', '31', '32', '33', '34', '36', '38', '40'];
+            sizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                sizeSelect.appendChild(option);
+            });
+        } else if (productType === 'Sepatu') {
+            const sizes = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
+            sizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                sizeSelect.appendChild(option);
+            });
+        }
+    });
+</script>
+{% endblock %}
